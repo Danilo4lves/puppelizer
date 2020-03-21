@@ -9,7 +9,6 @@ puppetJsonFile = 'puppet-files/puppet-2.json'
 #         such as dicts, tuples, and lists.
 #         Tuples represent function calls using infix notation
 
-
 def pn_to_python(node):
     if type(node) == dict:
         if "^" in node:
@@ -25,7 +24,6 @@ def pn_to_python(node):
         return [pn_to_python(elem) for elem in node]
     else:
         return node
-
 
 class PuppetMap:
     def __init__(self, map):
@@ -49,7 +47,6 @@ class PuppetMap:
         list_str = [str(x) for x in self.items]
         return "\n".join(list_str)
 
-
 class PuppetMapItem:
     def __init__(self, key, value):
         self.key = key
@@ -62,7 +59,6 @@ class PuppetMapItem:
 
     def __str__(self):
         return str(self.key) + ": " + str(self.value)
-
 
 class PuppetCall:
     def __init__(self, func_name, params):
@@ -228,7 +224,7 @@ class DuplicateKeyVisitor(PuppetVisitor):
             return False
         return True
 
-class EmptyClassVisitor(PuppetVisitor):
+class ClassVisitorBase(PuppetVisitor):
     def begin_call(self, call):
         if (str(call.func_name) == 'resource'):
             return True
@@ -238,7 +234,8 @@ class EmptyClassVisitor(PuppetVisitor):
         if (str(obj.get('type')) == 'class'):
             return True
         return False
-    
+
+class EmptyClassBodyVisitor(ClassVisitorBase):
     def begin_list(self, obj):
         objBodies = obj.list[0]
         classBodyStr = str(objBodies.get('ops'))
@@ -249,6 +246,19 @@ class EmptyClassVisitor(PuppetVisitor):
             return False
 
         return True
+
+class EmptyClassTitleVisitor(ClassVisitorBase):
+    def begin_list(self, obj):
+        objBodies = obj.list[0]
+        classTitleStr = str(objBodies.get('title'))
+
+        if (len(classTitleStr) == 0):
+            print('Class with empty title')
+
+            return False
+
+        return True
+
 
 with open(puppetJsonFile) as json_file:
     data = json.load(json_file)
@@ -269,5 +279,8 @@ with open(puppetJsonFile) as json_file:
     ast.accept(visitor)
     print("Duplicate keys: " + str(visitor.duplicate_keys))
 
-    visitor = EmptyClassVisitor()
+    visitor = EmptyClassBodyVisitor()
+    ast.accept(visitor)
+
+    visitor = EmptyClassTitleVisitor()
     ast.accept(visitor)
