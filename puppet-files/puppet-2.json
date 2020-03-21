@@ -1,0 +1,29 @@
+{
+  "^": [
+    "resource",
+    {
+      "#": [
+        "type",
+        {
+          "^": [
+            "qn",
+            "class"
+          ]
+        },
+        "bodies",
+        [
+          {
+            "#": [
+              "title",
+              "puppet::agent::service::cron",
+              "ops",
+              [
+
+              ]
+            ]
+          }
+        ]
+      ]
+    }
+  ]
+}
