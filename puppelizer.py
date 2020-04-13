@@ -224,30 +224,34 @@ class DuplicateKeyVisitor(PuppetVisitor):
             return False
         return True
 
-class ClassVisitorBase(PuppetVisitor):
+class UnneccessaryAbstractionVisitor(PuppetVisitor):
     def begin_call(self, call):
         if (str(call.func_name) == 'resource'):
             return True
         return False
     
     def begin_map(self, obj):
-        if (str(obj.get('type')) == 'class'):
+        objType = str(obj.get('type'))
+        objBodies = str(obj.get('bodies'))
+
+        if ((objType == 'class') & (len(objBodies) > 0)):
+            print('Puppet file with Unneccessary Abstraction Smell')
             return True
         return False
 
-class EmptyClassBodyVisitor(ClassVisitorBase):
-    def begin_list(self, obj):
-        objBodies = obj.list[0]
-        classBodyStr = str(objBodies.get('ops'))
+class EmptyClassTitleVisitor(PuppetVisitor):
+    def begin_call(self, call):
+        if (str(call.func_name) == 'resource'):
+            return True
+        return False
+    
+    def begin_map(self, obj):
+        objType = str(obj.get('type'))
 
-        if (len(classBodyStr) == 0):
-            print('Class with empty body')
+        if (objType == 'class'):
+            return True
+        return False
 
-            return False
-
-        return True
-
-class EmptyClassTitleVisitor(ClassVisitorBase):
     def begin_list(self, obj):
         objBodies = obj.list[0]
         classTitleStr = str(objBodies.get('title'))
@@ -279,7 +283,7 @@ with open(puppetJsonFile) as json_file:
     ast.accept(visitor)
     print("Duplicate keys: " + str(visitor.duplicate_keys))
 
-    visitor = EmptyClassBodyVisitor()
+    visitor = UnneccessaryAbstractionVisitor()
     ast.accept(visitor)
 
     visitor = EmptyClassTitleVisitor()
