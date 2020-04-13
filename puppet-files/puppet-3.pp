@@ -1,5 +1,6 @@
 # Puppet agent configuration
 # @api private
+# Has duplicated lines code smell on line 12
 class puppet::agent::config inherits puppet::config {
   puppet::config::agent{
     'classfile':         value => $::puppet::classfile;
@@ -8,6 +9,7 @@ class puppet::agent::config inherits puppet::config {
     'report':            value => $::puppet::report;
     'masterport':        value => $::puppet::port;
     'environment':       value => $::puppet::environment;
+    'listen':            value => $::puppet::listen;
     'listen':            value => $::puppet::listen;
     'splay':             value => $::puppet::splay;
     'splaylimit':        value => $::puppet::splaylimit;
