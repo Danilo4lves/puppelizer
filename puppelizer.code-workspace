@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "editor.detectIndentation": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+  },
+  "extensions": {
+    "recommendations": ["ms-python.python"]
+  }
+}
