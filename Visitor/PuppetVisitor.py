@@ -11,9 +11,6 @@ class PuppetVisitor:
     def visit_symbol(self, obj):
         return True
 
-    def visit_class(self, obj):
-        return True
-
     def begin_map(self, obj):
         return True
 
