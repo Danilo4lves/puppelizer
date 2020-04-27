@@ -1,4 +1,4 @@
-from Visitor import PuppetVisitor
+from BasicStructure import PuppetVisitor
 
 
 class PrintVarsVisitor(PuppetVisitor.PuppetVisitor):
