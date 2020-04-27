@@ -14,10 +14,15 @@ def runner(ast):
 
     unneccessaryAbstractionCounter += visitor.smellCount
 
+    visitor = Define()
+    ast.accept(visitor)
+
+    unneccessaryAbstractionCounter += visitor.smellCount
+
     print('Unneccessary Abstraction: ', unneccessaryAbstractionCounter)
 
 
-class ResourceLikeClass(PuppetVisitor.PuppetVisitor):
+class ResourceLikeClassVisitor(PuppetVisitor.PuppetVisitor):
     def __init__(self):
         self.smellCount = 0
         self.isCallResourceMyParent = False
@@ -59,7 +64,7 @@ class ResourceLikeClass(PuppetVisitor.PuppetVisitor):
         return True
 
 
-class IncludeLikeClass(PuppetVisitor.PuppetVisitor):
+class IncludeLikeClassVisitor(PuppetVisitor.PuppetVisitor):
     def __init__(self):
         self.smellCount = 0
         self.isCallClassMyParent = False
@@ -79,5 +84,31 @@ class IncludeLikeClass(PuppetVisitor.PuppetVisitor):
             self.smellCount += 1
 
         self.isCallClassMyParent = False
+
+        return True
+
+
+class DefineVisitor(PuppetVisitor.PuppetVisitor):
+    def __init__(self):
+        self.smellCount = 0
+        self.isCallDefineMyParent = False
+
+    def begin_call(self, call):
+        if (str(call.func_name) == 'define'):
+            self.isCallDefineMyParent = True
+
+            return True
+
+        self.isCallDefineMyParent = False
+
+        return False
+
+    def begin_map(self, obj):
+        objBody = str(obj.get('body'))
+
+        if (self.isCallDefineMyParent & (objBody == 'None')):
+            self.smellCount += 1
+
+        self.isCallDefineMyParent = False
 
         return True
