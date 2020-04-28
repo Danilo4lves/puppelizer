@@ -1,0 +1,2 @@
+file  { '/etc/passwd':
+}
