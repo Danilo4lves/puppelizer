@@ -1,20 +1,20 @@
-from BasicStructure import PuppetVisitor
+from BasicStructure import PuppetVisitor, PuppetMap
 
 
 def runner(ast):
     unneccessaryAbstractionCounter = 0
 
-    visitor = ResourceLikeClass()
+    visitor = ResourceVisitor()
     ast.accept(visitor)
 
     unneccessaryAbstractionCounter += visitor.smellCount
 
-    visitor = IncludeLikeClass()
+    visitor = IncludeLikeClassVisitor()
     ast.accept(visitor)
 
     unneccessaryAbstractionCounter += visitor.smellCount
 
-    visitor = Define()
+    visitor = DefineVisitor()
     ast.accept(visitor)
 
     unneccessaryAbstractionCounter += visitor.smellCount
@@ -22,11 +22,10 @@ def runner(ast):
     print('Unneccessary Abstraction: ', unneccessaryAbstractionCounter)
 
 
-class ResourceLikeClassVisitor(PuppetVisitor.PuppetVisitor):
+class ResourceVisitor(PuppetVisitor.PuppetVisitor):
     def __init__(self):
         self.smellCount = 0
         self.isCallResourceMyParent = False
-        self.isMapClassMyParent = False
 
     def begin_call(self, call):
         if (str(call.func_name) == 'resource'):
@@ -38,28 +37,18 @@ class ResourceLikeClassVisitor(PuppetVisitor.PuppetVisitor):
 
         return False
 
-    def begin_map(self, obj):
-        objType = str(obj.get('type'))
-
-        if ((objType == 'class')):
-            self.isMapClassMyParent = True
-
-            return True
-
-        self.isMapClassMyParent = False
-
-        return False
-
     def begin_list(self, obj):
-        objBodies = obj.list[0]
-        objBodiesOps = str(objBodies.get('ops'))
-        objBodiesOpsLenEqualsZero = len(objBodiesOps) == 0
+        if (obj.list):
+            objBodies = obj.list[0]
 
-        if (objBodiesOpsLenEqualsZero & self.isMapClassMyParent & self.isCallResourceMyParent):
-            self.smellCount += 1
+            if (isinstance(objBodies, PuppetMap.PuppetMap)):
+                objBodiesOps = str(objBodies.get('ops'))
+                objBodiesOpsLenEqualsZero = len(objBodiesOps) == 0
+
+                if (objBodiesOpsLenEqualsZero & self.isCallResourceMyParent):
+                    self.smellCount += 1
 
         self.isCallResourceMyParent = False
-        self.isMapClassMyParent = False
 
         return True
 
