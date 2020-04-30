@@ -1,51 +1,37 @@
 import json
 import pprint
 import os
+import glob
+import subprocess
 from BasicStructure import Initiate
 from CodeSmell import UnneccessaryAbstraction
 
-PUPPET_FILES_PATH = '/Users/Alves/Desktop/puppetAnalysis/filesinjson'
-# PUPPET_FILE_PATH = '/Users/Alves/Desktop/puppetAnalysis/filesinjson/class_include-like--with-body.json'
-# PUPPET_FILE_PATH = '/Users/Alves/Desktop/puppetAnalysis/filesinjson/class_empty-include-like.json'
-PUPPET_FILE_PATH = '/Users/Alves/Desktop/puppetAnalysis/filesinjson/2014_puppet-cdh_hive.json'
+PUPPET_FILES_PATH = '/Users/Alves/Desktop/puppetAnalysis'
+PUPPET_FILES_PATH_2 = '../puppetAnalysis'
+PUPPET_FILE_PATH = '/Users/Alves/Desktop/puppetAnalysis/filesinjson/define_with-body.json'
 
 
 def runPuppelizerOnFile(file):
-    with open(file) as jsonFile:
-        data = json.load(jsonFile)
+    puppetParserCommand = '/opt/puppetlabs/bin/puppet parser dump --format json ' + file
+    subprocessObject = subprocess.run(
+        puppetParserCommand, shell=True, stdout=subprocess.PIPE)
+    subprocessOutput = str(subprocessObject.stdout)
+    puppetFileInJson = json.loads(subprocessOutput[2:-3])
 
-        obj = Initiate.pn_to_python(data)
-        # pp = pprint.PrettyPrinter(indent=2)
-        # pp.pprint(obj)
+    obj = Initiate.pn_to_python(puppetFileInJson)
+    ast = Initiate.construct(obj)
 
-        ast = Initiate.construct(obj)
-
-        print(jsonFile)
-
-        # visitor = PrintVarsVisitor()
-        # ast.accept(visitor)
-
-        # print("\n-------------------\n")
-
-        # visitor = DuplicateKeyVisitor()
-        # ast.accept(visitor)
-        # print("Duplicate keys: " + str(visitor.duplicate_keys))
-
-        UnneccessaryAbstraction.runner(ast)
-        print("\n-------------------\n")
-
-        # visitor = EmptyClassTitleVisitor()
-        # ast.accept(visitor)
+    UnneccessaryAbstraction.runner(ast)
+    print("\n-------------------\n")
 
 
 def runPuppelizerOnAllFiles(filesPath):
-    # totalRepos = len(os.listdir(PUPPET_FILES_PATH))
+    globPathName = filesPath + '/**/*.pp'
+    files = glob.glob(globPathName, recursive=True)
 
-    for item in os.listdir(filesPath):
-        currentFile = filesPath + '/' + item
-
-        runPuppelizerOnFile(currentFile)
+    for item in files:
+        runPuppelizerOnFile(item)
 
 
-runPuppelizerOnAllFiles(PUPPET_FILES_PATH)
+runPuppelizerOnAllFiles(PUPPET_FILES_PATH_2)
 # runPuppelizerOnFile(PUPPET_FILE_PATH)
