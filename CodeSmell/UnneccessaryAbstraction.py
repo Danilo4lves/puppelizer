@@ -19,7 +19,7 @@ def runner(ast):
 
     unneccessaryAbstractionCounter += visitor.smellCount
 
-    print('Unneccessary Abstraction: ', unneccessaryAbstractionCounter)
+    return unneccessaryAbstractionCounter
 
 
 class ResourceVisitor(PuppetVisitor.PuppetVisitor):
