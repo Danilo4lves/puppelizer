@@ -1,6 +1,17 @@
 from BasicStructure import PuppetVisitor
 
 
+class ImperativeAbstractionResults:
+    def __init__(self, _class, _define, _file, _package, _service, _exec, isSmellPresent):
+        self._class = _class
+        self._define = _define
+        self._file = _file
+        self._package = _package
+        self._service = _service
+        self._exec = _exec
+        self.isSmellPresent = isSmellPresent
+
+
 def runner(ast):
     classDeclarationCounterVisitor = DeclarationCounterVisitor('class')
     defineDeclarationCounterVisitor = DeclarationCounterVisitor('define')
@@ -16,12 +27,7 @@ def runner(ast):
     ast.accept(serviceDeclarationCounterVisitor)
     ast.accept(execDeclarationCounterVisitor)
 
-    print('Class Declarations:', classDeclarationCounterVisitor.counter)
-    print('Define Declarations:', defineDeclarationCounterVisitor.counter)
-    print('File Declarations:', fileDeclarationCounterVisitor.counter)
-    print('Package Declarations:', packageDeclarationCounterVisitor.counter)
-    print('Service Declarations:', serviceDeclarationCounterVisitor.counter)
-    print('Exec Declarations:', execDeclarationCounterVisitor.counter)
+    isCodeSmellPresent = False
 
     if (execDeclarationCounterVisitor.counter > 2):
         totalDeclarationsButExec = classDeclarationCounterVisitor.counter \
@@ -30,8 +36,18 @@ def runner(ast):
             + packageDeclarationCounterVisitor.counter \
             + serviceDeclarationCounterVisitor.counter
 
-        print(execDeclarationCounterVisitor.counter,
-              totalDeclarationsButExec, execDeclarationCounterVisitor.counter / totalDeclarationsButExec)
+        if ((execDeclarationCounterVisitor.counter / totalDeclarationsButExec) >= 0.02):
+            isCodeSmellPresent = True
+
+    return ImperativeAbstractionResults(
+        classDeclarationCounterVisitor.counter,
+        defineDeclarationCounterVisitor.counter,
+        fileDeclarationCounterVisitor.counter,
+        packageDeclarationCounterVisitor.counter,
+        serviceDeclarationCounterVisitor.counter,
+        execDeclarationCounterVisitor.counter,
+        isCodeSmellPresent
+    )
 
 
 class DeclarationCounterVisitor(PuppetVisitor.PuppetVisitor):
@@ -42,10 +58,8 @@ class DeclarationCounterVisitor(PuppetVisitor.PuppetVisitor):
     def begin_call(self, call):
         if (str(call.func_name) == 'resource'):
             if (str(call.params[0].get('type')) == self.declarationType):
-                print(call.params[0].get('type'), self.declarationType)
                 self.counter += 1
         elif (str(call.func_name) == self.declarationType):
-            print('func_name', str(call.func_name))
             self.counter += 1
 
         return True
