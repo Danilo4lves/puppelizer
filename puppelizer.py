@@ -5,10 +5,34 @@ import glob
 import subprocess
 from BasicStructure import Initiate, Database, Constants
 from CodeSmell import UnneccessaryAbstraction, ImperativeAbstraction
+from Puppeteer.SmellDetector import AbsSmellDectector
+from Puppeteer.SourceModel import SM_File
 
 resultsFile = open(Constants.PUPPET_REPOSITORIES_PATH +
                    '/' + Constants.RESULTS_FILE, 'wt')
 resultsFile.write(Constants.RESULTS_FILE_HEADER)
+
+
+def runPuppeteerOnFile(file):
+    fileObj = SM_File.SM_File(file.path)
+
+    count = 0
+
+    for _ in AbsSmellDectector.detectUnnAbsInClasses(fileObj, ""):
+        count += 1
+    for _ in AbsSmellDectector.detectUnnAbsInModules(fileObj, ""):
+        count += 1
+    for _ in AbsSmellDectector.detectUnnAbsInDefine(fileObj, ""):
+        count += 1
+
+    file.unnecessaryAbsCountPuppeteer = count
+
+    has = False
+
+    for _ in AbsSmellDectector.detectImpAbs(fileObj, ""):
+        has = True
+
+    file.hasImperativeAbsPuppeteer = has
 
 
 def runPuppelizerOnFile(file, isJsonFormatted=False):
@@ -33,7 +57,6 @@ def runPuppelizerOnFile(file, isJsonFormatted=False):
     imperativeAbstractionResults = ImperativeAbstraction.runner(ast)
     unnecessaryAbstractionResult = UnneccessaryAbstraction.runner(ast)
 
-    file.isAnalyzed = True
     file.classCount = imperativeAbstractionResults._class
     file.defineCount = imperativeAbstractionResults._define
     file.fileResourceCount = imperativeAbstractionResults._file
@@ -42,7 +65,6 @@ def runPuppelizerOnFile(file, isJsonFormatted=False):
     file.execCount = imperativeAbstractionResults._exec
     file.hasImperativeAbs = imperativeAbstractionResults.isSmellPresent
     file.unnecessaryAbsCount = unnecessaryAbstractionResult
-    file.save()
 
 
 def runPuppelizerOnAllFiles():
@@ -55,13 +77,19 @@ def runPuppelizerOnAllFiles():
     for file in files:
         print('Files tested: ' + str(filesTested) +
               '/' + str(totalFiles))
+        print('Current file: ', file.path)
 
         try:
-            runPuppelizerOnFile(file)
+            if ((file.hasImperativeAbs is None) or (file.unnecessaryAbsCount is None)):
+                runPuppelizerOnFile(file)
+
+            if ((file.hasImperativeAbsPuppeteer is None) or (file.unnecessaryAbsCountPuppeteer is None)):
+                runPuppeteerOnFile(file)
         except:
-            file.isAnalyzed = True
             file.hasSyntaxError = True
-            file.save()
+
+        file.isAnalyzed = True
+        file.save()
 
         filesTested += 1
 
