@@ -1,3 +1,4 @@
+# export PYTHONPATH=/mnt/c/Users/Alves/Desktop:/mnt/c/Users/Alves/Desktop/Puppeteer
 import json
 import pprint
 import os
@@ -18,21 +19,21 @@ def runPuppeteerOnFile(file):
 
     count = 0
 
-    for _ in AbsSmellDectector.detectUnnAbsInClasses(fileObj, ""):
-        count += 1
-    for _ in AbsSmellDectector.detectUnnAbsInModules(fileObj, ""):
-        count += 1
-    for _ in AbsSmellDectector.detectUnnAbsInDefine(fileObj, ""):
-        count += 1
+    for hasSmell in AbsSmellDectector.detectUnnAbsInClasses(fileObj, ""):
+        if (hasSmell):
+            count += 1
+    for hasSmell in AbsSmellDectector.detectUnnAbsInModules(fileObj, ""):
+        if (hasSmell):
+            count += 1
+    for hasSmell in AbsSmellDectector.detectUnnAbsInDefine(fileObj, ""):
+        if (hasSmell):
+            count += 1
 
     file.unnecessaryAbsCountPuppeteer = count
 
-    has = False
+    hasImperativeAbs = AbsSmellDectector.detectImpAbs(fileObj, "")
 
-    for _ in AbsSmellDectector.detectImpAbs(fileObj, ""):
-        has = True
-
-    file.hasImperativeAbsPuppeteer = has
+    file.hasImperativeAbsPuppeteer = hasImperativeAbs
 
 
 def runPuppelizerOnFile(file, isJsonFormatted=False):
