@@ -1,4 +1,3 @@
-# export PYTHONPATH=/mnt/c/Users/Alves/Desktop:/mnt/c/Users/Alves/Desktop/Puppeteer
 import json
 import pprint
 import os
@@ -36,8 +35,19 @@ def runPuppeteerOnFile(file):
     file.hasImperativeAbsPuppeteer = hasImperativeAbs
 
 
-def runPuppelizerOnFile(file, isJsonFormatted=False):
-    if (not isJsonFormatted):
+def runPuppelizerOnFile(file, isJsonFormatted=False, isStringPath=False):
+    if ((not isJsonFormatted) and isStringPath):
+        PUPPET_PARSER_COMMAND = '/opt/puppetlabs/bin/puppet parser dump --format json ' + \
+            file + ' > ' + file[:-3] + '.json'
+        subprocess.run(
+            PUPPET_PARSER_COMMAND, shell=True, stdout=subprocess.PIPE)
+
+        with open(file[:-3] + '.json') as jsonFile:
+            puppetFileInJson = json.load(jsonFile)
+
+        removeJsonFileCommand = 'rm ' + file[:-3] + '.json'
+        subprocess.run(removeJsonFileCommand, shell=True)
+    elif ((not isJsonFormatted) and (not isStringPath)):
         PUPPET_PARSER_COMMAND = '/opt/puppetlabs/bin/puppet parser dump --format json ' + \
             file.path + ' > ' + file.path[:-3] + '.json'
         subprocess.run(
@@ -48,24 +58,31 @@ def runPuppelizerOnFile(file, isJsonFormatted=False):
 
         removeJsonFileCommand = 'rm ' + file.path[:-3] + '.json'
         subprocess.run(removeJsonFileCommand, shell=True)
-    else:
+    elif (isStringPath):
         with open(file) as jsonFile:
+            puppetFileInJson = json.load(jsonFile)
+    else:
+        with open(file.path) as jsonFile:
             puppetFileInJson = json.load(jsonFile)
 
     obj = Initiate.pn_to_python(puppetFileInJson)
     ast = Initiate.construct(obj)
 
-    imperativeAbstractionResults = ImperativeAbstraction.runner(ast)
-    unnecessaryAbstractionResult = UnneccessaryAbstraction.runner(ast)
+    if file.hasImperativeAbs is None:
+        imperativeAbstractionResults = ImperativeAbstraction.runner(ast)
 
-    file.classCount = imperativeAbstractionResults._class
-    file.defineCount = imperativeAbstractionResults._define
-    file.fileResourceCount = imperativeAbstractionResults._file
-    file.packageResourceCount = imperativeAbstractionResults._package
-    file.serviceResourceCount = imperativeAbstractionResults._service
-    file.execCount = imperativeAbstractionResults._exec
-    file.hasImperativeAbs = imperativeAbstractionResults.isSmellPresent
-    file.unnecessaryAbsCount = unnecessaryAbstractionResult
+        file.classCount = imperativeAbstractionResults._class
+        file.defineCount = imperativeAbstractionResults._define
+        file.fileResourceCount = imperativeAbstractionResults._file
+        file.packageResourceCount = imperativeAbstractionResults._package
+        file.serviceResourceCount = imperativeAbstractionResults._service
+        file.execCount = imperativeAbstractionResults._exec
+        file.hasImperativeAbs = imperativeAbstractionResults.isSmellPresent
+
+    if file.unnecessaryAbsCount is None:
+        unnecessaryAbstractionResult = UnneccessaryAbstraction.runner(ast)
+
+        file.unnecessaryAbsCount = unnecessaryAbstractionResult
 
 
 def runPuppelizerOnAllFiles():
@@ -96,4 +113,4 @@ def runPuppelizerOnAllFiles():
 
 
 runPuppelizerOnAllFiles()
-# runPuppelizerOnFile(PUPPET_FILE_PATH)
+# runPuppelizerOnFile(Constants.PUPPET_FILE_PATH, isStringPath=True)
