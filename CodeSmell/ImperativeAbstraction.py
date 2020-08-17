@@ -30,13 +30,14 @@ def runner(ast):
     isCodeSmellPresent = False
 
     if (execDeclarationCounterVisitor.counter > 2):
-        totalDeclarationsButExec = classDeclarationCounterVisitor.counter \
+        totalDeclarations = classDeclarationCounterVisitor.counter \
             + defineDeclarationCounterVisitor.counter \
             + fileDeclarationCounterVisitor.counter \
             + packageDeclarationCounterVisitor.counter \
-            + serviceDeclarationCounterVisitor.counter
+            + serviceDeclarationCounterVisitor.counter \
+            + execDeclarationCounterVisitor.counter
 
-        if ((execDeclarationCounterVisitor.counter / totalDeclarationsButExec) >= 0.02):
+        if (float(totalDeclarations * 0.2) <= float(execDeclarationCounterVisitor.counter)):
             isCodeSmellPresent = True
 
     return ImperativeAbstractionResults(
